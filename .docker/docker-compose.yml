@@ -21,10 +21,14 @@ services:
 
       # PostgreSQL 계정 및 패스워드 설정 옵션
       POSTGRES_DB: newurs
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_USER: ${POSTGRES_DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
       TZ: Asia/Seoul
 
     # 볼륨 설정 (호스트 도착지:컨테이너 출발지)
     volumes:
-      - ./data/postgres/:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+    postgres-data:
+        driver: local

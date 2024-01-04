@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, Integer, String
 from sqlalchemy.types import DateTime, Date, Time, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import DeclarativeBase, mapped_column
-from sqlalchemy.dialects.postgresql import JSONB
+# from sqlalchemy.dialects.postgresql import JSONB
 
 
 # Base class

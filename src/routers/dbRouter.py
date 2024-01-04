@@ -1,7 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from fastapi import APIRouter
-from src.PostgreSQL.postgresql import *
-from src.PostgreSQL.schema import engine
+from src.db.controller import *
+from src.db.schema import engine
 from src.types.dataTypes import *
 
 
