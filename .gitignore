@@ -1,4 +1,5 @@
-.config
+.env
+tmp/
 data/
 샘플데이터/
 
