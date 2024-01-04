@@ -25,9 +25,9 @@ def register_facility(infos: RegisterFacilities):
 
 
 # search facilities
-@facilityRouter.get("/search")
-def search_facility(facilityId=None, facilityUsage=None):
-    result = db_query_facility(Session, facilityId, facilityUsage)
+@facilityRouter.get("/search", response_model=RegisterFacilities)
+def search_facility(facilityId=None, facilityUsage=None, facilityInfo=None):
+    result = db_query_facility(Session, facilityId, facilityUsage, facilityInfo)
     return result
 
 
@@ -41,7 +41,7 @@ def register_resource(infos: RegisterResources):
 
 
 # search resources
-@resourceRouter.get("/search")
+@resourceRouter.get("/search", response_model=RegisterResources)
 def search_resource(resourceId=None, facilityId=None):
     result = db_query_resource(Session, resourceId, facilityId)
     return result

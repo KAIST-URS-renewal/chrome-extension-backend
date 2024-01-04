@@ -1,6 +1,6 @@
 import os
 from sqlalchemy import create_engine, Integer, String
-from sqlalchemy.types import DateTime, Date
+from sqlalchemy.types import DateTime, Date, Time, Boolean
 from sqlalchemy.sql import func
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB
@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
     pass
 
 
-# table: facility
+# table: facility info
 class Facility(Base):
     __tablename__ = "facility"
     id = mapped_column(Integer, primary_key=True) # primary id
@@ -24,9 +24,10 @@ class Facility(Base):
     facilityManager = mapped_column(String, nullable=False)
     facilityRegisterDate = mapped_column(Date, nullable=False)
     resourceInfo = mapped_column(String, nullable=False)
+    refreshDateTime = mapped_column(DateTime, nullable=False) # last refresh datetime
 
 
-# table: resource
+# table: resource info
 class Resource(Base):
     __tablename__ = "resource"
     id = mapped_column(Integer, primary_key=True) # primary id
@@ -41,19 +42,49 @@ class Resource(Base):
     facilityId = mapped_column(String, nullable=False)
 
 
-# table: user
+# table: user info
 class User(Base):
     __tablename__ = "user"
     email = mapped_column(Integer, primary_key=True)
     name = mapped_column(String, nullable=False)
     phone = mapped_column(String, nullable=True)
-    
+    refreshDateTime = mapped_column(DateTime, nullable=False) # last refresh datetime
 
-# table: reservation
+
+# table: reservation history for each user
+class UserReservation(Base):
+    __tablename__ = "userreservation"
+    id = mapped_column(Integer, primary_key=True)
+    reserverEmail = mapped_column(String, nullable=False)
+    reservationOrder = mapped_column(String, nullable=False)
+    facilityId = mapped_column(String, nullable=False)
+    reservationId = mapped_column(String, nullable=False)
+    facilityName = mapped_column(String, nullable=False)
+    resourceName = mapped_column(String, nullable=True) # nullable (신규회원추첨)
+    checkinDate = mapped_column(Date, nullable=False)
+    checkinTime = mapped_column(Time, nullable=True)    # nullable (신규회원추첨)
+    checkoutDate = mapped_column(Date, nullable=False)
+    checkoutTime = mapped_column(Time, nullable=True)   # nullable (신규회원추첨)
+    bookDate = mapped_column(Date, nullable=False)
+    bookTime = mapped_column(Time, nullable=False)
+    cancelDeadlineDate = mapped_column(Date, nullable=False)
+    cancelDeadlineTime = mapped_column(Time, nullable=False)
+    reservationStatus = mapped_column(String, nullable=False) # 배정 | 종료_미배정 | 취소_사용자취소 등등
+
+
+
+# table: current reservation for each facility
 class Reservation(Base):
     __tablename__ = "reservation"
     id = mapped_column(Integer, primary_key=True)
-    data = mapped_column(JSONB, nullable=False)
+    reservationId = mapped_column(String, nullable=False)
+    facilityId = mapped_column(String, nullable=False)
+    startDateTime = mapped_column(DateTime, nullable=False)
+    endDateTime = mapped_column(DateTime, nullable=False)
+    isReserved = mapped_column(Boolean, nullable=False)
+    resourceId = mapped_column(String, nullable=False)
+    resourceName = mapped_column(String, nullable=False)
+    reserverName = mapped_column(String, nullable=False)
 
 
 # get DB url from environmant variables

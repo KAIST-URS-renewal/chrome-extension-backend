@@ -24,12 +24,13 @@ def db_register_facility(sessmaker, infos):
     return
 
 # search facilities
-def db_query_facility(sessmaker, id, usage):
+def db_query_facility(sessmaker, id, usage, info):
     with sessmaker() as session:
         results = session.scalars(
                 select(Facility).
                 where((not id or Facility.facilityId == id),
-                      (not usage or Facility.facilityUsage == usage))
+                      (not usage or Facility.facilityUsage == usage),
+                      (not info or Facility.facilityInfo.contains(info)))
             ).all()
     return results
 
