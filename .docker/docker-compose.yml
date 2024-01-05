@@ -14,21 +14,21 @@ services:
 
     # 접근 포트 설정 (컨테이너 외부:컨테이너 내부)
     ports:
-      - "5432:5432"
+      - "${POSTGRES_DB_PORT}:5432"
 
     # 환경 변수 설정
     environment: 
 
       # PostgreSQL 계정 및 패스워드 설정 옵션
-      POSTGRES_DB: newurs
+      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_DB_USER}
       POSTGRES_PASSWORD: ${POSTGRES_DB_PASSWORD}
-      TZ: Asia/Seoul
+      TZ: ${POSTGRES_DB_TS}
 
     # 볼륨 설정 (호스트 도착지:컨테이너 출발지)
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - newurs-data:/var/lib/postgresql/data
 
 volumes:
-    postgres-data:
+    newurs-data:
         driver: local
