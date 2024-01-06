@@ -1,12 +1,8 @@
-from sqlalchemy.orm import sessionmaker
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from src.db.session import get_db
 from src.db.controller import *
-from src.db.schema import engine
 from src.types.dataTypes import *
 
-
-# make session
-Session = sessionmaker(engine)
 
 # define routers
 facilityRouter = APIRouter(prefix="/facility")
@@ -18,76 +14,62 @@ reserveRouter = APIRouter(prefix="/reserve")
 '''(1) facility Router'''
 
 # register new facility
-@facilityRouter.post("/register", response_model=DefaultOutput)
-def register_facility(infos: RegisterFacilities):
-    db_register_facility(Session, infos)
+@facilityRouter.post("", response_model=DefaultOutput)
+def register_facility(infos: RegisterFacilities, db: Session = Depends(get_db)):
+    db_register_facility(infos, db)
     return {"status": 200, "msg": "Insert Success."}
 
 
 # search facilities
-@facilityRouter.get("/search", response_model=RegisterFacilities)
-def search_facility(facilityId=None, facilityUsage=None, facilityInfo=None):
-    result = db_query_facility(Session, facilityId, facilityUsage, facilityInfo)
+@facilityRouter.get("", response_model=List[RegisterFacility])
+def search_facility(facilityId=None, facilityUsage=None, facilityInfo=None, db: Session = Depends(get_db)):
+    result = db_query_facility(facilityId, facilityUsage, facilityInfo, db)
     return result
 
 
 '''(2) resource Router'''
 
 # register new resource
-@resourceRouter.post("/register", response_model=DefaultOutput)
-def register_resource(infos: RegisterResources):
-    db_register_resource(Session, infos)
+@resourceRouter.post("", response_model=DefaultOutput)
+def register_resource(infos: RegisterResources, db: Session = Depends(get_db)):
+    db_register_resource(infos, db)
     return {"status": 200, "msg": "Insert Success."}
 
 
 # search resources
-@resourceRouter.get("/search", response_model=RegisterResources)
-def search_resource(resourceId=None, facilityId=None):
-    result = db_query_resource(Session, resourceId, facilityId)
+@resourceRouter.get("", response_model=List[RegisterResource])
+def search_resource(resourceId=None, facilityId=None, db: Session = Depends(get_db)):
+    result = db_query_resource(resourceId, facilityId, db)
     return result
 
 
 '''(3) user Router'''
 
 # add new user info
-@userRouter.post("/add", response_model=DefaultOutput)
-def add_user(info: AddUser):
-    db_insert_user(Session, info)
+@userRouter.post("", response_model=DefaultOutput)
+def add_user(info: AddUser, db: Session = Depends(get_db)):
+    db_insert_user(info, db)
     return {"status": 200, "msg": "Insert Success."}
 
 
 '''(4) reservation Router'''
 
 # add new reservation
-@reserveRouter.post("/add", response_model=DefaultOutput)
-def add_reservation(info: RegisterFacility):
-    db_insert_data(Session, info)
+@reserveRouter.post("", response_model=DefaultOutput)
+def add_reservation(info: RegisterFacility, db: Session = Depends(get_db)):
+    db_insert_data(info, db)
     return {"status": 200, "msg": "Insert Success."}
 
 
 # search reservations
-@reserveRouter.post("/search", response_model=SearchOutput)
-def search_reservation(query: SearchInput):
-    results = db_query_data(Session, query)
+@reserveRouter.get("", response_model=SearchOutput)
+def search_reservation(query: SearchInput, db: Session = Depends(get_db)):
+    results = db_query_data(query, db)
     return {"result": [result.data for result in results]}
 
 
 # remove reservation
-@reserveRouter.post("/remove", response_model=DefaultOutput)
-def remove_reservation(query: RemoveInput):
-    db_delete_data(Session, query)
+@reserveRouter.delete("", response_model=DefaultOutput)
+def remove_reservation(query: RemoveInput, db: Session = Depends(get_db)):
+    db_delete_data(query, db)
     return {"status": 200, "msg": "Delete Success."}
-
-
-'''
-# 경로 파라미터 값 얻기 (http://127.0.0.1:8000/items/3)
-#@app.get("/items/{item_id}")
-def read_item(item_id: int):
-    return {"item_id": item_id}
-
-# 쿼리 파라미터 값 얻기 (http://127.0.0.1:8000/items/?skip=0&limit=10)
-
-addRouter = APIRouter(prefix="/add")
-searchRouter = APIRouter(prefix="/search")
-removeRouter = APIRouter(prefix="/remove")
-'''

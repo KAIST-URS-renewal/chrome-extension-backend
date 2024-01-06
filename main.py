@@ -1,6 +1,6 @@
 import config
 from fastapi import FastAPI
-from routers.dbRouter import facilityRouter, resourceRouter, userRouter, reserveRouter
+from src.routers.dbRouter import facilityRouter, resourceRouter, userRouter, reserveRouter
 
 # uvicorn server
 app = FastAPI()

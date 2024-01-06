@@ -1,8 +1,8 @@
 import os
-from sqlalchemy import create_engine, Integer, String
+from sqlalchemy import create_engine, ForeignKey, Integer, String
 from sqlalchemy.types import DateTime, Date, Time, Boolean
 from sqlalchemy.sql import func
-from sqlalchemy.orm import DeclarativeBase, mapped_column
+from sqlalchemy.orm import DeclarativeBase, mapped_column, relationship
 # from sqlalchemy.dialects.postgresql import JSONB
 
 
@@ -18,12 +18,18 @@ class Facility(Base):
     timestamp = mapped_column(DateTime, default=func.now()) # db timestamp
     facilityName = mapped_column(String, nullable=False)
     facilityRegisterUrl = mapped_column(String, nullable=False)
-    facilityId = mapped_column(String, nullable=False, index=True)
+    facilityId = mapped_column(String, nullable=False)
     facilityInfo = mapped_column(String, nullable=False)
-    facilityUsage = mapped_column(String, nullable=False, index=True)
+    facilityUsage = mapped_column(String, nullable=True)  # nullable
     facilityManager = mapped_column(String, nullable=False)
     facilityRegisterDate = mapped_column(Date, nullable=False)
     resourceInfo = mapped_column(String, nullable=False)
+
+
+# table: facility refresh time
+class FacilityRefresh(Base):
+    __tablename__ = "facility_refresh"
+    facilityId = mapped_column(String, primary_key=True)
     refreshDateTime = mapped_column(DateTime, nullable=False) # last refresh datetime
 
 
@@ -45,15 +51,15 @@ class Resource(Base):
 # table: user info
 class User(Base):
     __tablename__ = "user"
-    email = mapped_column(Integer, primary_key=True)
-    name = mapped_column(String, nullable=False)
-    phone = mapped_column(String, nullable=True)
-    refreshDateTime = mapped_column(DateTime, nullable=False) # last refresh datetime
+    userEmail = mapped_column(String, primary_key=True)
+    userName = mapped_column(String, nullable=False)
+    userPhone = mapped_column(String, nullable=True)
+    refreshDateTime = mapped_column(DateTime, nullable=True) # last refresh datetime
 
 
 # table: reservation history for each user
 class UserReservation(Base):
-    __tablename__ = "userreservation"
+    __tablename__ = "user_reservation"
     id = mapped_column(Integer, primary_key=True)
     reserverEmail = mapped_column(String, nullable=False)
     reservationOrder = mapped_column(String, nullable=False)
@@ -74,8 +80,8 @@ class UserReservation(Base):
 
 
 # table: current reservation for each facility
-class Reservation(Base):
-    __tablename__ = "reservation"
+class FacilityReservation(Base):
+    __tablename__ = "facility_reservation"
     id = mapped_column(Integer, primary_key=True)
     reservationId = mapped_column(String, nullable=False)
     facilityId = mapped_column(String, nullable=False)
@@ -91,7 +97,7 @@ class Reservation(Base):
 POSTGRES_DB_URL= os.environ["POSTGRES_DB_URL"]
 
 # create db connection
-engine = create_engine(POSTGRES_DB_URL, echo=True)
+engine = create_engine(POSTGRES_DB_URL)
 
 # create schema (using table metadata and engine)
 Base.metadata.create_all(engine)

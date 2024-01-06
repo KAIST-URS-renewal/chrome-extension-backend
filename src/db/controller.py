@@ -1,142 +1,113 @@
 from sqlalchemy import select
-from .schema import Facility, Resource, User, Reservation
+from sqlalchemy.orm import Session
+from .schema import Facility, Resource, User, FacilityReservation
         
 
 '''(1) facility Router'''
 
 # register new facility
-def db_register_facility(sessmaker, infos):
-    with sessmaker.begin() as session:
-        for info in infos.infos:
-            # usage가 없는 경우, 여러 개인 경우도 고려하기
-            for usage in info.facilityUsage.split(','):
-                facility = Facility(
-                        facilityName = info.facilityName,
-                        facilityRegisterUrl = info.facilityRegisterUrl,
-                        facilityId = info.facilityId,
-                        facilityInfo = info.facilityInfo,
-                        facilityUsage = usage,
-                        facilityManager = info.facilityManager,
-                        facilityRegisterDate = info.facilityRegisterDate,
-                        resourceInfo = info.resourceInfo
-                    )
-                session.add(facility)
+def db_register_facility(infos: dict, db: Session):
+    for info in infos.infos:
+        # usage가 없는 경우, 여러 개인 경우도 고려하기
+        for usage in info.facilityUsage.split(','):
+            facility = Facility(
+                    facilityName = info.facilityName,
+                    facilityRegisterUrl = info.facilityRegisterUrl,
+                    facilityId = info.facilityId,
+                    facilityInfo = info.facilityInfo,
+                    facilityUsage = usage,
+                    facilityManager = info.facilityManager,
+                    facilityRegisterDate = info.facilityRegisterDate,
+                    resourceInfo = info.resourceInfo
+                )
+            db.add(facility)
+    db.commit()
     return
 
 # search facilities
-def db_query_facility(sessmaker, id, usage, info):
-    with sessmaker() as session:
-        results = session.scalars(
-                select(Facility).
-                where((not id or Facility.facilityId == id),
-                      (not usage or Facility.facilityUsage == usage),
-                      (not info or Facility.facilityInfo.contains(info)))
-            ).all()
+def db_query_facility(id: str, usage: str, info: str, db: Session):
+    results = db.scalars(
+        select(Facility).
+        where((not id or Facility.facilityId == id),
+            (not usage or Facility.facilityUsage == usage),
+            (not info or Facility.facilityInfo.contains(info)))
+        ).all()
     return results
 
 
 '''(2) resource Router'''
 
 # register new resource
-def db_register_resource(sessmaker, infos):
-    with sessmaker.begin() as session:
-        for info in infos.infos:
-            if not info:
-                continue
-            resource = Resource(
-                    resourceId = info.resourceId,
-                    resourceName = info.resourceName,
-                    resourceLocation = info.resourceLocation,
-                    resourceBldg = info.resourceBldg,
-                    resourceFloor = info.resourceFloor,
-                    resourceRoom = info.resourceRoom,
-                    resourceCapacity = info.resourceCapacity,
-                    facilityId = info.facilityId
-                )
-            session.add(resource)
+def db_register_resource(infos: dict, db: Session):
+    for info in infos.infos:
+        if not info:
+            continue
+        resource = Resource(
+            resourceId = info.resourceId,
+            resourceName = info.resourceName,
+            resourceLocation = info.resourceLocation,
+            resourceBldg = info.resourceBldg,
+            resourceFloor = info.resourceFloor,
+            resourceRoom = info.resourceRoom,
+            resourceCapacity = info.resourceCapacity,
+            facilityId = info.facilityId
+            )
+        db.add(resource)
+    db.commit()
     return
 
 
 # search resources
-def db_query_resource(sessmaker, rscId, facId):
-    with sessmaker() as session:
-        results = session.scalars(
-                select(Resource).
-                where((not rscId or Resource.resourceId == rscId),
-                      (not facId or Resource.facilityId == facId))
-            ).all()
+def db_query_resource(rscId: str, facId: str, db: Session):
+    results = db.scalars(
+            select(Resource).
+            where((not rscId or Resource.resourceId == rscId),
+                    (not facId or Resource.facilityId == facId))
+        ).all()
     return results
 
 
 '''(3) user Router'''
 
 # add new user
-def db_insert_user(sessmaker, info):
-    with sessmaker() as session:
-        result = session.scalars(
-                select(User).
-                where(User.email == info.email)
-            ).first()
-        if (result == None):
-            with sessmaker.begin() as session2:
-                user = User(
-                        email = info.email,
-                        name = info.name,
-                        phone = info.phone
-                    )
-                session2.add(user)
+def db_insert_user(info: dict, db: Session):
+    result = db.scalars(
+            select(User).
+            where(User.userEmail == info.userEmail)
+        ).first()
+    if (result == None):
+        user = User(
+            userEmail = info.userEmail,
+            userName = info.userName,
+            userPhone = info.userPhone
+        )
+        db.add(user)
+        db.commit()
     return
 
 
-'''(4) reservation Router'''
+'''(4) reservation Router (미완성)'''
 
 # insert new data
-def db_insert_data(sessmaker, info):
-    with sessmaker.begin() as session:
-        session.add(Reservation(data=info))
+def db_insert_data(info, db: Session):
+    db.add(FacilityReservation(data=info))
+    db.commit()
     return
 
 # query data
-def db_query_data(sessmaker, query):
-    with sessmaker() as session:
-        results = session.scalars(
-                select(Reservation).
-                where(Reservation.data["tag"].astext==query.tag)
-            ).all()
+def db_query_data(query, db: Session):
+    results = db.scalars(
+            select(FacilityReservation).
+            where(FacilityReservation.data["tag"].astext==query.tag)
+        ).all()
     return results
 
 # delete data
-def db_delete_data(sessmaker, query):
-    with sessmaker.begin() as session:
-        result = session.scalars(
-                select(Reservation).
-                where(Reservation.data["tag"].astext==query.tag)
-            ).first()
-        session.delete(result)
+def db_delete_data(query, db: Session):
+    result = db.scalars(
+            select(Reservation).
+            where(Reservation.data["tag"].astext==query.tag)
+        ).first()
+    db.delete(result)
+    db.commit()
     return
-
-'''
-if __name__ == '__main__':
-    # get DB url
-    POSTGRES_DB_URL = os.environ["POSTGRES_DB_URL"]
-
-    # create db connection
-    engine = create_engine(POSTGRES_DB_URL, echo=True)
-
-    # make session
-    Session = sessionmaker(engine)
-    session = Session()
-
-    # sample data
-    test_data1 = {
-        "tag": "sport",
-        "studentId": 20191234,
-        "datetime": "2023-12-31"
-        }
-
-    test_data2 = {
-        "tag": "study",
-        "studentId": 12345678,
-        "datetime": "2023-01-01"
-        }
-'''

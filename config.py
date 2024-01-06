@@ -12,9 +12,9 @@ POSTGRES_DB_PORT = os.environ.get('POSTGRES_DB_PORT')
 POSTGRES_DB = os.environ.get('POSTGRES_DB')
 POSTGRES_DB_USER = os.environ.get('POSTGRES_DB_USER')
 POSTGRES_DB_PASSWORD = os.environ.get('POSTGRES_DB_PASSWORD')
-POSTGRES_DB_TS = os.environ.get('POSTGRES_DB_TS')
+POSTGRES_DB_TZ = os.environ.get('POSTGRES_DB_TZ')
 
-if ((not POSTGRES_DB) or (not POSTGRES_DB_TS) or (not POSTGRES_DB_PORT) or (not POSTGRES_DB_USER) or (not POSTGRES_DB_PASSWORD)):
+if ((not POSTGRES_DB) or (not POSTGRES_DB_TZ) or (not POSTGRES_DB_PORT) or (not POSTGRES_DB_USER) or (not POSTGRES_DB_PASSWORD)):
     raise Exception("Environment variables are not properly set.")
 
 # set POSTGRES_DB_URL

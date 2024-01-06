@@ -41,9 +41,9 @@ class RegisterResources(BaseModel):
 
 # add new user
 class AddUser(BaseModel):
-    email: str
-    name: str
-    phone: str
+    userEmail: str
+    userName: str
+    userPhone: str
 
 
 '''(4) reservation Router'''
